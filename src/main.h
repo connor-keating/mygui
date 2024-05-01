@@ -2,6 +2,7 @@
 
 #pragma warning(push, 0)
 #include <windows.h>
+#include <stdio.h>
 #pragma warning(pop)
 
 #include "types.h"
