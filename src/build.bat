@@ -1,7 +1,7 @@
 @echo off
 
-set TurnOffWarnings=
-set CommonCompilerFlags=-Zi -nologo  -WX -W4 %TurnOffWarnings% 
+set TurnOffWarnings= -wd4189
+set CommonCompilerFlags=-Zi -nologo -W4 %TurnOffWarnings% 
 @REM Add build macros
 set CommonCompilerFlags= -D DEBUG_BUILD=1 %CommonCompilerFlags%
 set CommonLinkerFlags= -incremental:no -opt:ref user32.lib gdi32.lib winmm.lib opengl32.lib
@@ -13,5 +13,5 @@ pushd .build
 set files=..\src\main.c
 
 @REM 64-bit build command
-cl %CommonCompilerFlags% %files% -link %CommonLinkerFlags%
+cl %CommonCompilerFlags% %files% -link %CommonLinkerFlags% -OUT:mybox.exe
 popd
