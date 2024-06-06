@@ -13,5 +13,5 @@ pushd .build
 set files=..\src\main.c
 
 @REM 64-bit build command
-cl %CommonCompilerFlags% %files% -link %CommonLinkerFlags% -OUT:mybox.exe
+cl %CommonCompilerFlags% %files% -link %CommonLinkerFlags% -OUT:mygui.exe
 popd

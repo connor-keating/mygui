@@ -2,6 +2,7 @@
 
 // windows types.
 #include <stdint.h>
+#include <stdbool.h>
 
 #define bool32 int
 #define u8 uint8_t
