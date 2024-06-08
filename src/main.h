@@ -6,6 +6,7 @@
 #pragma warning(pop)
 
 #include "types.h"
+#include "win32_opengl.h"
 
 #if _DEBUG_BUILD
     #define Assert(Expression) if(!(Expression)) {*(int *)0 = 0;}
