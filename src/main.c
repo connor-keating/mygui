@@ -2,7 +2,7 @@
 
 #include "main.h"
 
-#define GAME_NAME L"StoryGame"
+#define GAME_NAME L"MyGUI"
 bool32 RUNNING_GAME; 
 
 LRESULT CALLBACK UnicodeWindowsProcedure(HWND windowHandle, UINT messageID, WPARAM wParam, LPARAM lParam)
