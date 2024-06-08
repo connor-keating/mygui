@@ -28,6 +28,7 @@ typedef ptrdiff_t   GLintptr;
 #define GL_FUNC_SIGNATURE(ret, name, ...) typedef ret WINAPI glfunc_##name(__VA_ARGS__);
 
 #define REQUIRED_OPENGL_FUNCTIONS                                                                                                                           \
+    GL_FUNC_SIGNATURE(GLuint, glCreateProgram, void)                                                                                                        \
     GL_FUNC_SIGNATURE(GLuint, glCreateShader, GLenum shaderType)                                                                                            \
     GL_FUNC_SIGNATURE(bool, wglSwapIntervalEXT, int interval)                                                                                               \
     GL_FUNC_SIGNATURE(int,  wglGetSwapIntervalEXT, void)                                                                                                \
@@ -37,7 +38,6 @@ typedef ptrdiff_t   GLintptr;
     GL_FUNC_SIGNATURE(void, glShaderSource, GLuint shader, GLsizei count, const GLchar** string, const GLint *length)                                       \
     GL_FUNC_SIGNATURE(void, glGetShaderiv, GLuint shader, GLenum pname, GLint* params)                                                                      \
     GL_FUNC_SIGNATURE(void, glGetShaderInfoLog, GLuint shader, GLsizei maxLength, GLsizei* length, char *infoLog)                                           \
-    GL_FUNC_SIGNATURE(GLuint, glCreateProgram, void)                                                                                                        \
     GL_FUNC_SIGNATURE(void, glAttachShader, GLuint program, GLuint shader)                                                                                  \
     GL_FUNC_SIGNATURE(void, glLinkProgram, GLuint program)                                                                                                  \
     GL_FUNC_SIGNATURE(void, glGetProgramiv, GLuint program, GLenum pname, GLint *params)                                                                    \
