@@ -83,6 +83,10 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     UNREFERENCED_PARAMETER(DISPLAYCONFIG_PIXELFORMAT_NONGDI);
 
     RECT windowSize = {0, 0, 800, 600};
+    AdjustWindowRect(&windowSize, WS_OVERLAPPEDWINDOW, FALSE);
+    int WindowWidth = windowSize.right - windowSize.left;
+    int WindowHeight = windowSize.bottom - windowSize.top;
+
     HWND myWindow = 0;
     WNDCLASSEXW windowClass = {0};
     windowClass.cbSize = sizeof(windowClass);
@@ -90,7 +94,7 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     windowClass.lpfnWndProc = UnicodeWindowsProcedure;
     windowClass.hInstance = currentInstanceHandle;
     windowClass.hCursor = LoadCursor(0, IDC_ARROW);
-    // windowClass.hbrBackground = CreateSolidBrush(RGB(255, 0, 255));
+    // windowClass.hbrBackground = CreateSolidBrush(RGB(255, 0, 255)); // Magenta background
     windowClass.hbrBackground = (HBRUSH)COLOR_WINDOW;
     windowClass.lpszClassName = GAME_NAME "WINDOW_CLASS";
 
@@ -99,9 +103,7 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
         MessageBoxExW(NULL, L"ERROR: Failed to register window.", L"Error", MB_ICONEXCLAMATION | MB_OK, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
         exit(1);
     }
-    int WindowWidth = windowSize.right - windowSize.left;
-    int WindowHeight = windowSize.bottom - windowSize.top;
-    AdjustWindowRect(&windowSize, WS_OVERLAPPEDWINDOW, FALSE);
+    
     myWindow = CreateWindowExW(
         0,                      // WS_EX_TOPMOST|WS_EX_LAYERED,
         windowClass.lpszClassName,
