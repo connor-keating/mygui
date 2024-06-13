@@ -5,6 +5,7 @@
 #define GAME_NAME L"MyGUI"
 bool32 RUNNING_GAME; 
 
+
 LRESULT CALLBACK UnicodeWindowsProcedure(HWND windowHandle, UINT messageID, WPARAM wParam, LPARAM lParam)
 { 
     // Characters are coming in Unicode 
@@ -76,6 +77,12 @@ static void win32_message_procedure(HWND windowHandle)
     }
 }
 
+static void application_end_error(LPCWSTR message)
+{
+    MessageBoxExW(NULL, message, L"Error", MB_ICONEXCLAMATION | MB_OK, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
+    exit(1);
+}
+
 int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandle, PWSTR argsCommandLine, int displayFlag)
 {
     UNREFERENCED_PARAMETER(prevInstanceHandle);
@@ -104,24 +111,156 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
         exit(1);
     }
     
-    myWindow = CreateWindowExW(
-        0,                      // WS_EX_TOPMOST|WS_EX_LAYERED,
-        windowClass.lpszClassName,
-        GAME_NAME,
-        WS_OVERLAPPEDWINDOW,    // | WS_VISIBLE,
-        300,                    // CW_USEDEFAULT // x 
-        300,                    // CW_USEDEFAULT // y
-        WindowWidth,            //CW_USEDEFAULT, // width
-        WindowHeight,           //CW_USEDEFAULT, // height
-        0,
-        0,
-        currentInstanceHandle,
-        0
-    );
-    if (myWindow == 0)
+    glfunc_wglChoosePixelFormatARB *wglChoosePixelFormatARB = 0;
+    glfunc_wglCreateContextAttribsARB *wglCreateContextAttribsARB = 0;
+
+    // Initialize fake window for OpenGL.
     {
-        MessageBoxExW(NULL, L"ERROR: Failed to create window.", L"Error", MB_ICONEXCLAMATION | MB_OK, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
-        exit(1);
+        myWindow = CreateWindowExW(
+            0,                      // WS_EX_TOPMOST|WS_EX_LAYERED,
+            windowClass.lpszClassName,
+            GAME_NAME,
+            WS_OVERLAPPEDWINDOW,    // | WS_VISIBLE,
+            300,                    // CW_USEDEFAULT // x 
+            300,                    // CW_USEDEFAULT // y
+            WindowWidth,            //CW_USEDEFAULT, // width
+            WindowHeight,           //CW_USEDEFAULT, // height
+            0,
+            0,
+            currentInstanceHandle,
+            0
+        );
+        if (myWindow == 0)
+        {
+            application_end_error(L"ERROR: Failed to create fake window.");
+        }
+        
+        HDC fakeDC = GetDC(myWindow);
+        if (fakeDC == 0)
+        {
+            application_end_error(L"ERROR: Failed to get fake device context.");
+        }
+
+        PIXELFORMATDESCRIPTOR pixelFormat = {0};
+        pixelFormat.nSize = sizeof(pixelFormat);
+        pixelFormat.nVersion = 1;
+        pixelFormat.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+        pixelFormat.iPixelType = PFD_TYPE_RGBA;
+        pixelFormat.cColorBits = 32;
+        pixelFormat.cAlphaBits = 8;
+        pixelFormat.cDepthBits = 24;
+        int chosenPixelFormat = ChoosePixelFormat(fakeDC, &pixelFormat);
+        if (chosenPixelFormat == 0)
+        {
+            application_end_error(L"ERROR: Failed to choose pixel format descriptor.");
+        }
+        int isPixelFormatSet = SetPixelFormat(fakeDC, chosenPixelFormat, &pixelFormat);
+        if (isPixelFormatSet == 0)
+        {
+            application_end_error(L"ERROR: Failed to set the pixel format descriptor.");
+        }
+        HGLRC fakeRC = wglCreateContext(fakeDC);
+        if (fakeRC == 0)
+        {
+            application_end_error(L"ERROR: Failed to create fake rendering context.");
+        }
+        int isFakeCurrent = wglMakeCurrent(fakeDC, fakeRC);
+        if (isFakeCurrent == 0)
+        {
+            application_end_error(L"ERROR: Failed to make the OpenGL rendering context the current rendering context.");
+        }
+        wglChoosePixelFormatARB    = (glfunc_wglChoosePixelFormatARB*) wglGetProcAddress("wglChoosePixelFormatARB");
+        wglCreateContextAttribsARB = (glfunc_wglCreateContextAttribsARB*) wglGetProcAddress("wglCreateContextAttribsARB");
+        if (wglChoosePixelFormatARB == 0 || wglCreateContextAttribsARB == 0)
+        {
+            application_end_error(L"ERROR: Failed to load OpenGL functions.");
+        }
+        wglMakeCurrent(fakeDC, 0);
+        wglDeleteContext(fakeRC);
+        ReleaseDC(myWindow, fakeDC);
+        DestroyWindow(myWindow);
+    }
+
+    {
+        myWindow = CreateWindowExW(
+            0,                      // WS_EX_TOPMOST|WS_EX_LAYERED,
+            windowClass.lpszClassName,
+            GAME_NAME,
+            WS_OVERLAPPEDWINDOW,    // | WS_VISIBLE,
+            300,                    // CW_USEDEFAULT // x 
+            300,                    // CW_USEDEFAULT // y
+            WindowWidth,            //CW_USEDEFAULT, // width
+            WindowHeight,           //CW_USEDEFAULT, // height
+            0,
+            0,
+            currentInstanceHandle,
+            0
+        );
+        if (myWindow == 0)
+        {
+            application_end_error(L"ERROR: Failed to create window.");
+        }
+        HDC myDC = GetDC(myWindow);
+        if (myDC == 0)
+        {
+            application_end_error(L"ERROR: Failed to get device context.");
+        }
+        const int pixelAttribs[] =
+        {
+            WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+            WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+            WGL_DOUBLE_BUFFER_ARB,  GL_TRUE,
+            WGL_SWAP_METHOD_ARB,    WGL_SWAP_COPY_ARB,
+            WGL_PIXEL_TYPE_ARB,     WGL_TYPE_RGBA_ARB,
+            WGL_ACCELERATION_ARB,   WGL_FULL_ACCELERATION_ARB,
+            WGL_COLOR_BITS_ARB,     32,
+            WGL_ALPHA_BITS_ARB,     8,
+            WGL_DEPTH_BITS_ARB,     24,
+            0 // Terminate with 0, otherwise OpenGL will throw an Error!
+        };
+
+        UINT numPixelFormats;
+        int pixelFormat = 0;
+        BOOL chosenPixelFormatARB = wglChoosePixelFormatARB(
+            myDC,
+            pixelAttribs,
+            0, // Float List
+            1, // Max Formats
+            &pixelFormat,
+            &numPixelFormats
+        );
+        if(chosenPixelFormatARB == 0)
+        {
+            application_end_error(L"ERROR: Failed to wglChoosePixelFormatARB");
+        }
+        PIXELFORMATDESCRIPTOR pixelFormatDescriptor = {0};
+        DescribePixelFormat(myDC, pixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pixelFormatDescriptor);
+        BOOL isPixelFormatSet = SetPixelFormat(myDC, pixelFormat, &pixelFormatDescriptor);
+        if (isPixelFormatSet == 0)
+        {
+            application_end_error(L"ERROR: Failed to set the pixel format.");
+        }
+
+        const int contextAttribs[] = {
+            WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+            WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+            WGL_CONTEXT_PROFILE_MASK_ARB, 
+            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_FLAGS_ARB, 
+            WGL_CONTEXT_DEBUG_BIT_ARB,
+            0 // Terminate the Array
+        };
+
+        HGLRC renderingContext = wglCreateContextAttribsARB(myDC, 0, contextAttribs);
+        if (renderingContext == 0)
+        {
+            application_end_error(L"ERROR: Failed to create rendering context.");
+        }
+        BOOL isContextSet = wglMakeCurrent(myDC, renderingContext);
+        if (isContextSet == 0)
+        {
+            application_end_error(L"ERROR: Failed to set the device and rendering context.");
+        }
     }
     ShowWindow(myWindow, displayFlag);
     
