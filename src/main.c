@@ -84,6 +84,33 @@ static void application_end_error(LPCWSTR message)
     exit(1);
 }
 
+static char* read_shader(char *fullFilePath)
+{
+    FILE *stream;
+    char *shader = 0;
+    fopen_s(&stream, fullFilePath, "rb");
+    if (stream)
+    {
+        fseek(stream, 0, SEEK_END);
+        size_t memorySize = ftell(stream);
+        shader = (char*) malloc(memorySize+1);
+        memset(shader, 0, memorySize);
+        fseek(stream, 0, SEEK_SET);
+        size_t bytesRead = fread(shader, 1, memorySize, stream);
+        if (bytesRead != memorySize)
+        {
+            application_end_error(L"ERROR: Read incorrect number of bytes from file.");
+        }
+        shader[memorySize] = '\0';
+    }
+    else
+    {
+        application_end_error(L"ERROR: Failed to read file.");
+    }
+    fclose(stream);
+    return shader;
+}
+
 int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandle, PWSTR argsCommandLine, int displayFlag)
 {
     UNREFERENCED_PARAMETER(prevInstanceHandle);
@@ -269,6 +296,11 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     
     // Initialize OpenGL
     opengl_load_functions();
+
+
+    // Creating OpenGL program.
+    char* vertexShader   = read_shader("shaders\\vertex.shader");
+    char* fragmentShader = read_shader("shaders\\fragment.shader");
 
 
     RUNNING_GAME = true;
