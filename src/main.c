@@ -22,9 +22,10 @@ LRESULT CALLBACK UnicodeWindowsProcedure(HWND windowHandle, UINT messageID, WPAR
         }
         case WM_SIZE:
             // Set the size and position of the window. 
-            // RECT windowDimensions = {0};
-            // GetClientRect(windowHandle, &windowDimensions); 
-            // opengl_resize(windowDimensions);
+            RECT windowDimensions = {0};
+            GetClientRect(windowHandle, &windowDimensions); 
+            // int left, int top, int right, int bottom
+            glViewport(0, 0, windowDimensions.right, windowDimensions.bottom);
         default: 
             result = DefWindowProcW(windowHandle, messageID, wParam, lParam); 
     }
