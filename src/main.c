@@ -181,6 +181,8 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
         DestroyWindow(myWindow);
     }
 
+    // Initialize real window for app.
+    HDC appDeviceContext;
     {
         myWindow = CreateWindowExW(
             0,                      // WS_EX_TOPMOST|WS_EX_LAYERED,
@@ -200,8 +202,8 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
         {
             application_end_error(L"ERROR: Failed to create window.");
         }
-        HDC myDC = GetDC(myWindow);
-        if (myDC == 0)
+        appDeviceContext = GetDC(myWindow);
+        if (appDeviceContext == 0)
         {
             application_end_error(L"ERROR: Failed to get device context.");
         }
@@ -222,7 +224,7 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
         UINT numPixelFormats;
         int pixelFormat = 0;
         BOOL chosenPixelFormatARB = wglChoosePixelFormatARB(
-            myDC,
+            appDeviceContext,
             pixelAttribs,
             0, // Float List
             1, // Max Formats
@@ -234,8 +236,8 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
             application_end_error(L"ERROR: Failed to wglChoosePixelFormatARB");
         }
         PIXELFORMATDESCRIPTOR pixelFormatDescriptor = {0};
-        DescribePixelFormat(myDC, pixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pixelFormatDescriptor);
-        BOOL isPixelFormatSet = SetPixelFormat(myDC, pixelFormat, &pixelFormatDescriptor);
+        DescribePixelFormat(appDeviceContext, pixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pixelFormatDescriptor);
+        BOOL isPixelFormatSet = SetPixelFormat(appDeviceContext, pixelFormat, &pixelFormatDescriptor);
         if (isPixelFormatSet == 0)
         {
             application_end_error(L"ERROR: Failed to set the pixel format.");
@@ -251,12 +253,12 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
             0 // Terminate the Array
         };
 
-        HGLRC renderingContext = wglCreateContextAttribsARB(myDC, 0, contextAttribs);
+        HGLRC renderingContext = wglCreateContextAttribsARB(appDeviceContext, 0, contextAttribs);
         if (renderingContext == 0)
         {
             application_end_error(L"ERROR: Failed to create rendering context.");
         }
-        BOOL isContextSet = wglMakeCurrent(myDC, renderingContext);
+        BOOL isContextSet = wglMakeCurrent(appDeviceContext, renderingContext);
         if (isContextSet == 0)
         {
             application_end_error(L"ERROR: Failed to set the device and rendering context.");
@@ -264,10 +266,19 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     }
     ShowWindow(myWindow, displayFlag);
     
+    // Initialize OpenGL
+    opengl_load_functions();
+
+
     RUNNING_GAME = true;
     while (RUNNING_GAME)
     {
         win32_message_procedure(myWindow);
+
+        // Render
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT); // also clear the depth buffer now!
+        SwapBuffers(appDeviceContext);
     }
     
 
