@@ -61,6 +61,7 @@ typedef HGLRC WINAPI glfunc_wglCreateContextAttribsARB (HDC hDC, HGLRC hShareCon
     GL_FUNC_SIGNATURE(void, glGetShaderiv, GLuint shader, GLenum pname, GLint* params)                                                                      \
     GL_FUNC_SIGNATURE(void, glGetShaderInfoLog, GLuint shader, GLsizei maxLength, GLsizei* length, char *infoLog)                                           \
     GL_FUNC_SIGNATURE(void, glAttachShader, GLuint program, GLuint shader)                                                                                  \
+    GL_FUNC_SIGNATURE(void, glDetachShader, GLuint program, GLuint shader)                                                                                  \
     GL_FUNC_SIGNATURE(void, glLinkProgram, GLuint program)                                                                                                  \
     GL_FUNC_SIGNATURE(void, glGetProgramiv, GLuint program, GLenum pname, GLint *params)                                                                    \
     GL_FUNC_SIGNATURE(void, glDeleteShader, GLuint shader)                                                                                                  \
