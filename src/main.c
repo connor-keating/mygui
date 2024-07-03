@@ -299,9 +299,100 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
 
 
     // Creating OpenGL program.
-    char* vertexShader   = read_shader("shaders\\vertex.shader");
-    char* fragmentShader = read_shader("shaders\\fragment.shader");
+    GLuint vbo, vao, vertShaderID, fragShaderID, programID;
 
+
+    const char* vertShader   = read_shader("shaders\\vertex.shader");
+    vertShaderID = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertShaderID, 1, &vertShader, 0);
+    glCompileShader(vertShaderID);
+    // Test if vertex shader compiled successfully.
+    {
+        int success = 0;
+        char shaderLog[512] = {0};
+        glGetShaderiv(vertShaderID, GL_COMPILE_STATUS, &success);
+        if(!success)
+        {
+            glGetShaderInfoLog(vertShaderID, 512, 0, shaderLog);
+            OutputDebugStringA(shaderLog);
+            application_end_error(L"Failed to compile vertex shaders"); //, shaderLog);
+        }
+    }
+    
+
+    const char* fragShader = read_shader("shaders\\fragment.shader");
+    fragShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragShaderID, 1, &fragShader, 0);
+    glCompileShader(fragShaderID);
+    // Test if fragment shader compiled successfully.
+    {
+        int success = 0;
+        char shaderLog[512] = {0};
+        glGetShaderiv(fragShaderID, GL_COMPILE_STATUS, &success);
+        if(!success)
+        {
+            glGetShaderInfoLog(fragShaderID, 512, 0, shaderLog);
+            OutputDebugStringA(shaderLog);
+            application_end_error(L"Failed to compile fragment shaders"); //, shaderLog);
+        }
+    }
+
+    programID = glCreateProgram();
+    glAttachShader(programID, vertShaderID);
+    glAttachShader(programID, fragShaderID);
+    glLinkProgram(programID);
+    // Test if program compiled successfully.
+    {
+        OutputDebugStringA("hello");
+        int success = 0;
+        char programLog[512] = {0};
+        glGetProgramiv(programID, GL_LINK_STATUS, &success);
+        if(!success)
+        {
+            glGetProgramInfoLog(programID, 512, 0, programLog);
+            OutputDebugStringA(programLog);
+            application_end_error(L"Failed to compile OpenGL program."); //, shaderLog);
+        }
+    }
+
+    // glDetachShader(programID, vertShaderID);
+    // glDetachShader(programID, fragShaderID);
+    glDeleteShader(vertShaderID);
+    glDeleteShader(fragShaderID);
+
+    f32 triangle[] = {
+        -0.5f, -0.5f, 0.0f, // left  
+         0.5f, -0.5f, 0.0f, // right 
+         0.0f,  0.5f, 0.0f  // top   
+    };
+    GLsizei arraySize = (GLsizei) sizeof(triangle);
+    GLsizei dataSize = (GLsizei) sizeof(triangle[0]);
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+
+    glBindVertexArray(vao);
+
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // int attributeLength = 3; // N data points
+    // glVertexAttribPointer(0, attributeLength, GL_FLOAT, GL_FALSE, attributeLength * dataSize, (void*)0);
+    // glEnableVertexAttribArray(0);
+
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    
+    
+
+    // Depth Tesing
+    // glEnable(GL_DEPTH_TEST);
+    // glDepthFunc(GL_GREATER);
+
+    // glUseProgram(programID);
+    
 
     RUNNING_GAME = true;
     while (RUNNING_GAME)
@@ -310,7 +401,15 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
 
         // Render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT); // also clear the depth buffer now!
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glViewport(0, 0, windowSize.right, windowSize.bottom);
+        glUseProgram(programID);
+        glBindVertexArray(vao);
+        
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+
         SwapBuffers(appDeviceContext);
     }
     
