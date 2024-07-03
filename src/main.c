@@ -297,12 +297,10 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     // Initialize OpenGL
     opengl_load_functions();
 
-
     // Creating OpenGL program.
-    GLuint vbo, vao, vertShaderID, fragShaderID, programID;
+    GLuint vao, vertShaderID, fragShaderID, programID;
 
-
-    const char* vertShader   = read_shader("shaders\\vertex.shader");
+    const char* vertShader = read_shader("shaders\\vertex.shader");
     vertShaderID = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertShaderID, 1, &vertShader, 0);
     glCompileShader(vertShaderID);
@@ -318,7 +316,6 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
             application_end_error(L"Failed to compile vertex shaders"); //, shaderLog);
         }
     }
-    
 
     const char* fragShader = read_shader("shaders\\fragment.shader");
     fragShaderID = glCreateShader(GL_FRAGMENT_SHADER);
@@ -343,7 +340,6 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     glLinkProgram(programID);
     // Test if program compiled successfully.
     {
-        OutputDebugStringA("hello");
         int success = 0;
         char programLog[512] = {0};
         glGetProgramiv(programID, GL_LINK_STATUS, &success);
@@ -355,44 +351,20 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
         }
     }
 
-    // glDetachShader(programID, vertShaderID);
-    // glDetachShader(programID, fragShaderID);
+    glDetachShader(programID, vertShaderID);
+    glDetachShader(programID, fragShaderID);
     glDeleteShader(vertShaderID);
     glDeleteShader(fragShaderID);
 
-    f32 triangle[] = {
-        -0.5f, -0.5f, 0.0f, // left  
-         0.5f, -0.5f, 0.0f, // right 
-         0.0f,  0.5f, 0.0f  // top   
-    };
-    GLsizei arraySize = (GLsizei) sizeof(triangle);
-    GLsizei dataSize = (GLsizei) sizeof(triangle[0]);
     glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-
     glBindVertexArray(vao);
 
+    // Depth Testing
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_GREATER);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STATIC_DRAW);
+    glUseProgram(programID);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // int attributeLength = 3; // N data points
-    // glVertexAttribPointer(0, attributeLength, GL_FLOAT, GL_FALSE, attributeLength * dataSize, (void*)0);
-    // glEnableVertexAttribArray(0);
-
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    
-    
-
-    // Depth Tesing
-    // glEnable(GL_DEPTH_TEST);
-    // glDepthFunc(GL_GREATER);
-
-    // glUseProgram(programID);
-    
 
     RUNNING_GAME = true;
     while (RUNNING_GAME)
@@ -401,20 +373,11 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
 
         // Render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearDepth(0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glViewport(0, 0, windowSize.right, windowSize.bottom);
-        glUseProgram(programID);
-        glBindVertexArray(vao);
-        
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-
+        glDrawArrays(GL_TRIANGLES, 0, 6);
         SwapBuffers(appDeviceContext);
     }
-    
-
-
 
     return 0;
 }
