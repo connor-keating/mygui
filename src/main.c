@@ -117,7 +117,8 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     UNREFERENCED_PARAMETER(argsCommandLine);
     UNREFERENCED_PARAMETER(DISPLAYCONFIG_PIXELFORMAT_NONGDI);
 
-    RECT windowSize = {0, 0, 800, 600};
+    window_shape active_window = { .width = 1000, .height = 600};
+    RECT windowSize = {0, 0, active_window.width, active_window.height};
     AdjustWindowRect(&windowSize, WS_OVERLAPPEDWINDOW, FALSE);
     int WindowWidth = windowSize.right - windowSize.left;
     int WindowHeight = windowSize.bottom - windowSize.top;
@@ -163,6 +164,18 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
             application_end_error(L"ERROR: Failed to create fake window.");
         }
         
+
+        HMONITOR monitor_h = MonitorFromWindow(myWindow, MONITOR_DEFAULTTOPRIMARY);
+        MONITORINFO monitor_info = {0};
+        monitor_info.cbSize = sizeof ( MONITORINFO );
+        BOOL monitor_info_success = GetMonitorInfoW(monitor_h, &monitor_info);
+        if (monitor_info_success == 0)
+        {
+            application_end_error(L"ERROR: Failed to get monitor info.");
+        }
+        active_window.width = monitor_info.rcMonitor.right - monitor_info.rcMonitor.left;
+        active_window.height = monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top;
+
         HDC fakeDC = GetDC(myWindow);
         if (fakeDC == 0)
         {
@@ -293,7 +306,7 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
         }
     }
     ShowWindow(myWindow, displayFlag);
-    
+
     // Initialize OpenGL
     opengl_load_functions();
 
