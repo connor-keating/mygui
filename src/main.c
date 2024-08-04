@@ -246,7 +246,8 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
 
     active_window.width = monitor_info.rcMonitor.right - monitor_info.rcMonitor.left;
     active_window.height = monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top;
-
+    app_window_info.position_x = (i32) (active_window.width / 2) -  (app_window_info.width / 2);
+    app_window_info.position_y = (i32) (active_window.height / 2) - (app_window_info.height / 2);
     {
     
         myWindow = CreateWindowExW(
