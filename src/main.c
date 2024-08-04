@@ -160,6 +160,10 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     glfunc_wglChoosePixelFormatARB *wglChoosePixelFormatARB = 0;
     glfunc_wglCreateContextAttribsARB *wglCreateContextAttribsARB = 0;
 
+    // Initializing data structs to get monitor info.
+    MONITORINFO monitor_info = {0};
+    monitor_info.cbSize = sizeof ( MONITORINFO );
+
     // Initialize fake window for OpenGL.
     {
         myWindow = CreateWindowExW(
@@ -176,6 +180,7 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
             app_window_info.window_handle,
             app_window_info.window_data_pointer
         );
+        
         if (myWindow == 0)
         {
             application_end_error(L"ERROR: Failed to create fake window.");
@@ -184,16 +189,12 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
 
         // TODO: Monitor size may be wrong because of zoom level?
         HMONITOR monitor_h = MonitorFromWindow(myWindow, MONITOR_DEFAULTTOPRIMARY);
-        MONITORINFO monitor_info = {0};
-        monitor_info.cbSize = sizeof ( MONITORINFO );
         BOOL monitor_info_success = GetMonitorInfoW(monitor_h, &monitor_info);
         if (monitor_info_success == 0)
         {
             application_end_error(L"ERROR: Failed to get monitor info.");
         }
-        active_window.width = monitor_info.rcMonitor.right - monitor_info.rcMonitor.left;
-        active_window.height = monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top;
-
+        
         HDC fakeDC = GetDC(myWindow);
         if (fakeDC == 0)
         {
@@ -242,20 +243,25 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
 
     // Initialize real window for app.
     HDC appDeviceContext;
+
+    active_window.width = monitor_info.rcMonitor.right - monitor_info.rcMonitor.left;
+    active_window.height = monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top;
+
     {
+    
         myWindow = CreateWindowExW(
-            0,                      // WS_EX_TOPMOST|WS_EX_LAYERED,
-            window_class.lpszClassName,
-            GAME_NAME,
-            WS_OVERLAPPEDWINDOW,    // | WS_VISIBLE,
-            300,                    // CW_USEDEFAULT // x 
-            300,                    // CW_USEDEFAULT // y
-            WindowWidth,            //CW_USEDEFAULT, // width
-            WindowHeight,           //CW_USEDEFAULT, // height
-            0,
-            0,
-            currentInstanceHandle,
-            0
+            app_window_info.style_extended,     
+            app_window_info.class_name,         
+            app_window_info.name,               
+            app_window_info.style_basic,        
+            app_window_info.position_x,         
+            app_window_info.position_y,         
+            app_window_info.width,              
+            app_window_info.height,             
+            app_window_info.window_parent,
+            app_window_info.window_menu,
+            app_window_info.window_handle,
+            app_window_info.window_data_pointer
         );
         if (myWindow == 0)
         {
