@@ -117,6 +117,8 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     UNREFERENCED_PARAMETER(argsCommandLine);
     UNREFERENCED_PARAMETER(DISPLAYCONFIG_PIXELFORMAT_NONGDI);
 
+    // TODO complete the monitor resolution check.
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     window_shape active_window = { .width = 1000, .height = 600};
     RECT windowSize = {0, 0, active_window.width, active_window.height};
     AdjustWindowRect(&windowSize, WS_OVERLAPPEDWINDOW, FALSE);
@@ -165,6 +167,7 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
         }
         
 
+        // TODO: Monitor size may be wrong because of zoom level?
         HMONITOR monitor_h = MonitorFromWindow(myWindow, MONITOR_DEFAULTTOPRIMARY);
         MONITORINFO monitor_info = {0};
         monitor_info.cbSize = sizeof ( MONITORINFO );
