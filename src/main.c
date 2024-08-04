@@ -2,7 +2,6 @@
 
 #include "main.h"
 
-#define GAME_NAME L"MyGUI"
 bool32 RUNNING_GAME; 
 
 
@@ -117,8 +116,12 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     UNREFERENCED_PARAMETER(argsCommandLine);
     UNREFERENCED_PARAMETER(DISPLAYCONFIG_PIXELFORMAT_NONGDI);
 
-    // TODO complete the monitor resolution check.
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    
+    game_screen app_screen = {0};
+    app_screen.resolution.x = GAME_WIDTH;
+    app_screen.resolution.y = GAME_HEIGHT;
+
     window_shape active_window = { .width = 1000, .height = 600};
     RECT windowSize = {0, 0, active_window.width, active_window.height};
     AdjustWindowRect(&windowSize, WS_OVERLAPPEDWINDOW, FALSE);
@@ -126,17 +129,29 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     int WindowHeight = windowSize.bottom - windowSize.top;
 
     HWND myWindow = 0;
-    WNDCLASSEXW windowClass = {0};
-    windowClass.cbSize = sizeof(windowClass);
-    windowClass.style = CS_HREDRAW|CS_VREDRAW, // |CS_OWNDC;
-    windowClass.lpfnWndProc = UnicodeWindowsProcedure;
-    windowClass.hInstance = currentInstanceHandle;
-    windowClass.hCursor = LoadCursor(0, IDC_ARROW);
-    // windowClass.hbrBackground = CreateSolidBrush(RGB(255, 0, 255)); // Magenta background
-    windowClass.hbrBackground = (HBRUSH)COLOR_WINDOW;
-    windowClass.lpszClassName = GAME_NAME "WINDOW_CLASS";
+    WNDCLASSEXW window_class = {0};
+    window_class.cbSize = sizeof(window_class);
+    window_class.style = CS_HREDRAW|CS_VREDRAW, // |CS_OWNDC;
+    window_class.lpfnWndProc = UnicodeWindowsProcedure;
+    window_class.hInstance = currentInstanceHandle;
+    window_class.hCursor = LoadCursor(0, IDC_ARROW);
+    // window_class.hbrBackground = CreateSolidBrush(RGB(255, 0, 255)); // Magenta background
+    window_class.hbrBackground = (HBRUSH)COLOR_WINDOW;
+    window_class.lpszClassName = GAME_NAME "WINDOW_CLASS";
 
-    if (RegisterClassExW(&windowClass) == 0)
+    window_info app_window_info = {0};
+    app_window_info.style_extended = WS_EX_CLIENTEDGE;        // WS_EX_TOPMOST|WS_EX_LAYERED,
+    app_window_info.class_name = window_class.lpszClassName;  // handle to window_class
+    app_window_info.name = GAME_NAME;                         // title of window
+    app_window_info.style_basic = WS_OVERLAPPEDWINDOW;        // | WS_VISIBLE,
+    app_window_info.position_x = 0;                           // CW_USEDEFAULT
+    app_window_info.position_y = 0;                           // CW_USEDEFAULT
+    app_window_info.width = (i32) app_screen.resolution.x;
+    app_window_info.height = (i32) app_screen.resolution.y;
+    app_window_info.window_handle = currentInstanceHandle;
+
+
+    if (RegisterClassExW(&window_class) == 0)
     {
         MessageBoxExW(NULL, L"ERROR: Failed to register window.", L"Error", MB_ICONEXCLAMATION | MB_OK, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
         exit(1);
@@ -148,18 +163,18 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     // Initialize fake window for OpenGL.
     {
         myWindow = CreateWindowExW(
-            0,                      // WS_EX_TOPMOST|WS_EX_LAYERED,
-            windowClass.lpszClassName,
-            GAME_NAME,
-            WS_OVERLAPPEDWINDOW,    // | WS_VISIBLE,
-            300,                    // CW_USEDEFAULT // x 
-            300,                    // CW_USEDEFAULT // y
-            WindowWidth,            //CW_USEDEFAULT, // width
-            WindowHeight,           //CW_USEDEFAULT, // height
-            0,
-            0,
-            currentInstanceHandle,
-            0
+            app_window_info.style_extended,     
+            app_window_info.class_name,         
+            app_window_info.name,               
+            app_window_info.style_basic,        
+            app_window_info.position_x,         
+            app_window_info.position_y,         
+            app_window_info.width,              
+            app_window_info.height,             
+            app_window_info.window_parent,
+            app_window_info.window_menu,
+            app_window_info.window_handle,
+            app_window_info.window_data_pointer
         );
         if (myWindow == 0)
         {
@@ -230,7 +245,7 @@ int WINAPI wWinMain(HINSTANCE currentInstanceHandle, HINSTANCE prevInstanceHandl
     {
         myWindow = CreateWindowExW(
             0,                      // WS_EX_TOPMOST|WS_EX_LAYERED,
-            windowClass.lpszClassName,
+            window_class.lpszClassName,
             GAME_NAME,
             WS_OVERLAPPEDWINDOW,    // | WS_VISIBLE,
             300,                    // CW_USEDEFAULT // x 
