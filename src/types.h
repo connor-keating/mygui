@@ -20,3 +20,13 @@
 #define Megabytes(Value) (Kilobytes(Value)*1024LL)
 #define Gigabytes(Value) (Megabytes(Value)*1024LL)
 #define Terabytes(Value) (Gigabytes(Value)*1024LL)
+
+typedef union fvec2 fvec2;
+union fvec2
+{
+    struct 
+    {
+        f32 x, y;
+    };
+    f32 array[2];
+};
