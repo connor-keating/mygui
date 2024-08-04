@@ -1,6 +1,6 @@
 @echo off
 
-set TurnOffWarnings= -wd4189
+set TurnOffWarnings= -wd4189 -wd4201
 set CommonCompilerFlags=-Zi -nologo -W4 %TurnOffWarnings% 
 @REM Add build macros
 set CommonCompilerFlags= -D DEBUG_BUILD=1 %CommonCompilerFlags%
